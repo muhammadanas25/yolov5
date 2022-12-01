@@ -33,11 +33,16 @@ import yaml
 from torch.optim import lr_scheduler
 from tqdm import tqdm
 
+
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
+
+print(os.environ['SM_CHANNEL_TRAIN'])
+if Path(os.environ['SM_CHANNEL_TRAIN']+ '/data.yaml').exists():
+    print("exist")
 
 import val as validate  # for end-of-epoch mAP
 from models.experimental import attempt_load
@@ -434,7 +439,7 @@ def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', type=str, default=ROOT / 'yolov5s.pt', help='initial weights path')
     parser.add_argument('--cfg', type=str, default='', help='model.yaml path')
-    parser.add_argument('--data', type=str, default=ROOT / '/home/anassiddiqui/Downloads/yolov5/Wind_Turbine-7/data.yaml', help='dataset.yaml path')
+    parser.add_argument('--data', type=str, default=  os.environ['SM_CHANNEL_TRAIN'] + '/data.yaml', help='dataset.yaml path')
     parser.add_argument('--hyp', type=str, default=ROOT / 'data/hyps/hyp.scratch-low.yaml', help='hyperparameters path')
     parser.add_argument('--epochs', type=int, default=100, help='total training epochs')
     parser.add_argument('--batch-size', type=int, default=16, help='total batch size for all GPUs, -1 for autobatch')
@@ -455,7 +460,7 @@ def parse_opt(known=False):
     parser.add_argument('--optimizer', type=str, choices=['SGD', 'Adam', 'AdamW'], default='SGD', help='optimizer')
     parser.add_argument('--sync-bn', action='store_true', help='use SyncBatchNorm, only available in DDP mode')
     parser.add_argument('--workers', type=int, default=8, help='max dataloader workers (per RANK in DDP mode)')
-    parser.add_argument('--project', default=ROOT / '/opt/ml/model/', help='save to project/name')
+    parser.add_argument('--project', default='/opt/ml/model/', help='save to project/name')
     parser.add_argument('--name', default='exp', help='save to project/name')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--quad', action='store_true', help='quad dataloader')
