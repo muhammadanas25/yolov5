@@ -34,6 +34,7 @@ from torch.optim import lr_scheduler
 from tqdm import tqdm
 
 
+
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
 if str(ROOT) not in sys.path:
@@ -70,6 +71,35 @@ RANK = int(os.getenv('RANK', -1))
 WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 GIT_INFO = check_git_info()
 
+import boto3
+from pathlib import Path
+from datetime import datetime
+import tqdm
+
+def upload_video(bucket_name: str, key: str, file_path: Path,  ExtraArgs: dict):
+        file_size = file_path.stat().st_size
+        with tqdm(total=file_size, unit="B", unit_scale=True, desc=f"Uploading {file_path.name}") as pbar:
+            s3_client.upload_file(
+                    Filename=str(file_path),
+                    Bucket=bucket_name,
+                    Key=key,
+                    ExtraArgs=ExtraArgs,
+                    Callback=lambda bytes_transferred: pbar.update(bytes_transferred),
+            )
+      
+bucket_name = 'aerones'
+region = "us-east-1"  # Change region as needed
+#current_time = time.strftime(r"%Y-%m-%d-%H-%M", time.())
+
+boto3.setup_default_session(region_name=region)
+boto_session = boto3.Session(region_name=region)
+
+s3_client = boto3.client("s3", region_name=region)
+
+task_key = 'wind_turbine_models'
+s3_zip_path = '/home/anassiddiqui/Downloads/WindTurbine_train.zip'
+
+
 
 def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictionary
     save_dir, epochs, batch_size, weights, single_cls, evolve, data, cfg, resume, noval, nosave, workers, freeze = \
@@ -81,6 +111,10 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
     w = save_dir / 'weights'  # weights dir
     (w.parent if evolve else w).mkdir(parents=True, exist_ok=True)  # make dir
     last, best = w / 'last.pt', w / 'best.pt'
+    print(f"***************************best******************{best}")
+    s3_client.upload_file(Bucket=bucket_name, Key=task_key, Filename=best)
+
+
 
     # Hyperparameters
     if isinstance(hyp, str):
