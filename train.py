@@ -112,7 +112,7 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
     (w.parent if evolve else w).mkdir(parents=True, exist_ok=True)  # make dir
     last, best = w / 'last.pt', w / 'best.pt'
     print(f"***************************best******************{best}")
-    s3_client.upload_file(Bucket=bucket_name, Key=task_key, Filename=best)
+    s3_client.upload_file(Bucket=bucket_name, Key=task_key, Filename=str(best))
 
 
 
