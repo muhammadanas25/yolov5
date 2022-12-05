@@ -111,10 +111,8 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
     w = save_dir / 'weights'  # weights dir
     (w.parent if evolve else w).mkdir(parents=True, exist_ok=True)  # make dir
     last, best = w / 'last.pt', w / 'best.pt'
-    print(f"***************************best******************{best}")
-    s3_client.upload_file(Bucket=bucket_name, Key=task_key, Filename=str(best))
 
-
+   
 
     # Hyperparameters
     if isinstance(hyp, str):
@@ -422,6 +420,11 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
                 # Save last, best and delete
                 torch.save(ckpt, last)
                 if best_fitness == fi:
+                    print(f"***************************best******************{best}")
+                    
+                    s3_client.upload_file(Bucket=bucket_name, Key=task_key, Filename=str(best))
+
+
                     torch.save(ckpt, best)
                 if opt.save_period > 0 and epoch % opt.save_period == 0:
                     torch.save(ckpt, w / f'epoch{epoch}.pt')
