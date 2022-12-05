@@ -41,7 +41,7 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
-print(f"--------------------------------{os.environ['SM_CHANNEL_DATA']}---------------------")
+print(f"--------------------------------{os.environ['SM_CHANNEL_DATA']}---------------------{os.environ['SM_MODEL_DIR']}")
 if Path(os.environ['SM_CHANNEL_DATA']).exists():
     print("exist")
 
@@ -420,11 +420,12 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
                 # Save last, best and delete
                 torch.save(ckpt, last)
                 if best_fitness == fi:
-                    print(f"***************************best******************{best}")
+                    with open(os.path.join(opt.model_dir, 'best.pt'), 'wb') as f:
+                        torch.save(model.state_dict(), f)
+
+                        print(f"***************************best******************model saved")
                     
-                    s3_client.upload_file(Bucket=bucket_name, Key=task_key, Filename=str(best))
-
-
+                    # s3_client.upload_file(Bucket=bucket_name, Key=task_key, Filename=str(best))
                     torch.save(ckpt, best)
                 if opt.save_period > 0 and epoch % opt.save_period == 0:
                     torch.save(ckpt, w / f'epoch{epoch}.pt')
@@ -508,7 +509,7 @@ def parse_opt(known=False):
     parser.add_argument('--save-period', type=int, default=-1, help='Save checkpoint every x epochs (disabled if < 1)')
     parser.add_argument('--seed', type=int, default=0, help='Global training seed')
     parser.add_argument('--local_rank', type=int, default=-1, help='Automatic DDP Multi-GPU argument, do not modify')
-
+    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
     # Logger arguments
     parser.add_argument('--entity', default=None, help='Entity')
     parser.add_argument('--upload_dataset', nargs='?', const=True, default=False, help='Upload data, "val" option')
