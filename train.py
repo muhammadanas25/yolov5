@@ -71,33 +71,33 @@ RANK = int(os.getenv('RANK', -1))
 WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 GIT_INFO = check_git_info()
 
-import boto3
-from pathlib import Path
-from datetime import datetime
-import tqdm
+# import boto3
+# from pathlib import Path
+# from datetime import datetime
+# import tqdm
 
-def upload_video(bucket_name: str, key: str, file_path: Path,  ExtraArgs: dict):
-        file_size = file_path.stat().st_size
-        with tqdm(total=file_size, unit="B", unit_scale=True, desc=f"Uploading {file_path.name}") as pbar:
-            s3_client.upload_file(
-                    Filename=str(file_path),
-                    Bucket=bucket_name,
-                    Key=key,
-                    ExtraArgs=ExtraArgs,
-                    Callback=lambda bytes_transferred: pbar.update(bytes_transferred),
-            )
+# def upload_video(bucket_name: str, key: str, file_path: Path,  ExtraArgs: dict):
+#         file_size = file_path.stat().st_size
+#         with tqdm(total=file_size, unit="B", unit_scale=True, desc=f"Uploading {file_path.name}") as pbar:
+#             s3_client.upload_file(
+#                     Filename=str(file_path),
+#                     Bucket=bucket_name,
+#                     Key=key,
+#                     ExtraArgs=ExtraArgs,
+#                     Callback=lambda bytes_transferred: pbar.update(bytes_transferred),
+#             )
       
-bucket_name = 'aerones'
-region = "us-east-1"  # Change region as needed
-#current_time = time.strftime(r"%Y-%m-%d-%H-%M", time.())
+# bucket_name = 'aerones'
+# region = "us-east-1"  # Change region as needed
+# #current_time = time.strftime(r"%Y-%m-%d-%H-%M", time.())
 
-boto3.setup_default_session(region_name=region)
-boto_session = boto3.Session(region_name=region)
+# boto3.setup_default_session(region_name=region)
+# boto_session = boto3.Session(region_name=region)
 
-s3_client = boto3.client("s3", region_name=region)
+# s3_client = boto3.client("s3", region_name=region)
 
-task_key = 'wind_turbine_models'
-s3_zip_path = '/home/anassiddiqui/Downloads/WindTurbine_train.zip'
+# task_key = 'wind_turbine_models'
+# s3_zip_path = '/home/anassiddiqui/Downloads/WindTurbine_train.zip'
 
 
 
@@ -280,6 +280,7 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
     # Start training
     t0 = time.time()
     nb = len(train_loader)  # number of batches
+    print("*************************",nb)
     nw = max(round(hyp['warmup_epochs'] * nb), 100)  # number of warmup iterations, max(3 epochs, 100 iterations)
     # nw = min(nw, (epochs - start_epoch) / 2 * nb)  # limit warmup to < 1/2 of training
     last_opt_step = -1
@@ -314,7 +315,6 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
         pbar = enumerate(train_loader)
         LOGGER.info(('\n' + '%11s' * 7) % ('Epoch', 'GPU_mem', 'box_loss', 'obj_loss', 'cls_loss', 'Instances', 'Size'))
         if RANK in {-1, 0}:
-            print(f"pbar{pbar}------------------")
             pbar = tqdm(pbar, total=nb, bar_format=TQDM_BAR_FORMAT)  # progress bar
         optimizer.zero_grad()
         for i, (imgs, targets, paths, _) in pbar:  # batch -------------------------------------------------------------
@@ -422,7 +422,7 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
                 torch.save(ckpt, last)
                 if best_fitness == fi:
                     with open(os.path.join(opt.model_dir, 'best.pt'), 'wb') as f:
-                        torch.save(model.state_dict(), f)
+                        torch.save(best.state_dict(), f)
 
                         print(f"***************************best******************model saved")
                     
