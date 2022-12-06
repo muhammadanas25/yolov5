@@ -422,7 +422,7 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
                 torch.save(ckpt, last)
                 if best_fitness == fi:
                     with open(os.path.join(opt.model_dir, 'best.pt'), 'wb') as f:
-                        torch.save(best.state_dict(), f)
+                        torch.save(ckpt, f)
 
                         print(f"***************************best******************model saved")
                     
